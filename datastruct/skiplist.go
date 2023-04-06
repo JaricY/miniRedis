@@ -160,9 +160,13 @@ func (zsl *ZskipList) ZslGetRank(score float32, ele *SDS) uint64 {
 func (zsl *ZskipList) Print() {
 	for i := zsl.Level - 1; i >= 0; i-- {
 		x := zsl.Header
+
 		for x.Level[i].Forward != nil {
+			if x.Level[i].Forward.Ele.buf == nil {
+				continue
+			}
 			print(string(x.Ele.buf))
-			for j := uint64(0); j < x.Level[i].Span; j++ {
+			for j := uint64(0); j < x.Level[i].Forward.Level[i].Span; j++ {
 				print("   -> ")
 			}
 			x = x.Level[i].Forward
