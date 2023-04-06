@@ -1,6 +1,9 @@
-package src
+package datastruct
 
-import "unsafe"
+import (
+	"bytes"
+	"unsafe"
+)
 
 const SDS_MAX_PREALLOC = 1024 * 1024
 
@@ -105,4 +108,22 @@ func BytesFromStringHeader(hdr *[3]uintptr) []byte {
 	b := make([]byte, hdr[1])
 	copy(b, *(*[]byte)(unsafe.Pointer(hdr[0])))
 	return b
+}
+
+func SDSCmp(s1 SDS, s2 SDS) int32 {
+	len1 := s1.Len()
+	len2 := s2.Len()
+	minlen := len1
+
+	if len1 > len2 {
+		minlen = len2
+	}
+
+	cmp := bytes.Compare(s1.buf[:minlen], s2.buf[:minlen])
+
+	if cmp == 0 {
+		return len1 - len2
+	}
+
+	return int32(cmp)
 }

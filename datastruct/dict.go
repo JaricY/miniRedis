@@ -1,4 +1,4 @@
-package src
+package datastruct
 
 import (
 	"fmt"
@@ -237,7 +237,7 @@ func (d *Dict) dictGetSize() int64 {
 }
 
 func (d *Dict) reHash() { //参数n表示每次处理多少个键值对
-	n := 512
+	n := HASH_MAX_ZIPMAP_ENTRIES
 	if d.RehashIdx == -1 {
 		d.RehashIdx = 0
 	}

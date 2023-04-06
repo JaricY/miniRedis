@@ -1,30 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"miniRedis/src"
+	"miniRedis/datastruct"
 	"strconv"
 )
 
 func main() {
-	dictType := &src.MyDictType{}
-	dict := src.DictCreate(dictType, nil)
-	for i := 1; i <= 33; i++ {
-		add := dict.DictAdd("key"+strconv.Itoa(i), "val"+strconv.Itoa(i))
-		if add {
-			//println("第"+strconv.Itoa(i), "次添加结果")
-			//dict.Print()
-			//println("------------")
-		}
-		//time.Sleep(500 * time.Millisecond)
+	zskipList := datastruct.ZslCreate()
+	j := 1
+	var i float32 = 0.1
+	for ; i <= 0.9; i += 0.1 {
+		sds := datastruct.NewSDS("key" + strconv.Itoa(j))
+		zskipList.ZslInsert(i, sds)
+		rank := zskipList.ZslGetRank(i, sds)
+		println("rank", j, " ->", rank)
+		j++
 	}
-	value := dict.DictFetchValue("key1")
-	println(fmt.Sprint("before...", value))
-	dict.DictReplace("key1", "newval1")
-	value = dict.DictFetchValue("key1")
-	println(fmt.Sprint("after...", value))
-	dict.DictDelete("key1")
-	value = dict.DictFetchValue("key1")
-	println(fmt.Sprint("delete...", value))
+	zskipList.Print()
 
 }
