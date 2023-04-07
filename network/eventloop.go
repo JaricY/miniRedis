@@ -1,24 +1,39 @@
 package network
 
-import "github.com/panjf2000/gnet"
+import (
+	"fmt"
+	"github.com/panjf2000/gnet"
+)
 
 type EventLoop struct { //事件轮训
 	react  func(frame []byte, c gnet.Conn) (out []byte, action gnet.Action)
-	accept func(c gnet.Conn) (out []byte, action gnet.Action)
-
+	onOpen func(c gnet.Conn) (out []byte, action gnet.Action)
 	*gnet.EventServer
 }
 
-// 读事件处理
+// 接收来自连接的数据并处理。
 func (e *EventLoop) React(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
+	cmd := string(frame)
+	fmt.Println("Received command:", cmd)
 	return e.react(frame, c)
 }
 
-// 新连接处理
+// 连接打开时调用。
 func (e *EventLoop) OnOpened(c gnet.Conn) (out []byte, action gnet.Action) {
-	return e.accept(c)
+	fmt.Printf("Accepted connection from %s\n", c.RemoteAddr().String())
+
+	return e.onOpen(c)
+
 }
 
-func elMain() {
+func ElMain() {
+
+	InitRedisServer()
+	err := gnet.Serve(server.events, "tcp://:6399", gnet.WithMulticore(true))
+
+	if err != nil {
+		fmt.Println("Error starting server:", err.Error())
+		return
+	}
 
 }

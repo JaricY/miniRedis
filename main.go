@@ -1,21 +1,16 @@
 package main
 
-import (
-	"miniRedis/datastruct"
-	"strconv"
-)
+import "miniRedis/network"
+
+var banner = `
+   ______          ___
+  / ____/___  ____/ (_)____
+ / / __/ __ \/ __  / / ___/
+/ /_/ / /_/ / /_/ / (__  )
+\____/\____/\__,_/_/____/
+`
 
 func main() {
-	zskipList := datastruct.ZslCreate()
-	j := 1
-	var i float32 = 0.1
-	for ; i <= 0.9; i += 0.1 {
-		sds := datastruct.NewSDS("key" + strconv.Itoa(j))
-		zskipList.ZslInsert(i, sds)
-		rank := zskipList.ZslGetRank(i, sds)
-		println("rank", j, " ->", rank)
-		j++
-	}
-	zskipList.Print()
-
+	print(banner)
+	network.ElMain()
 }

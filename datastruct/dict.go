@@ -90,8 +90,8 @@ func (MyDictType) ValDestructor(key interface{}) {
 
 }
 
-func DictCreate(dictType DictType, privateData interface{}) Dict {
-	dict := Dict{
+func DictCreate(dictType DictType, privateData interface{}) *Dict {
+	dict := &Dict{
 		DictType: dictType,
 		Private:  privateData,
 	}

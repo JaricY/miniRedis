@@ -8,7 +8,7 @@ import (
 const SDS_MAX_PREALLOC = 1024 * 1024
 
 type SDS struct {
-	buf  []byte
+	Buf  []byte
 	len  int32
 	free int32
 }
@@ -23,13 +23,13 @@ func (s *SDS) NewSDS(str string) {
 	length := int32(len(str))
 	if length <= 1024 {
 		//默认创建1KB大小的缓冲
-		s.buf = make([]byte, 1024)
-		s.buf = append(s.buf, str...)
+		s.Buf = make([]byte, 1024)
+		s.Buf = append(s.Buf, str...)
 		s.len = length
 		s.free = 1024 - length
 	} else {
 		//如果大于1KB，则不预留空间
-		s.buf = []byte(str)
+		s.Buf = []byte(str)
 		s.len = length
 		s.free = 0
 	}
@@ -67,9 +67,9 @@ func (s *SDS) Grow(len int32) { //扩容，参数len表示当前所需扩增的�
 
 	newbuf := make([]byte, len1)
 
-	copy(newbuf, s.buf)
+	copy(newbuf, s.Buf)
 
-	s.buf = newbuf
+	s.Buf = newbuf
 
 	// 先做扩增，具体的长度还没确定
 	s.free = len1 - s.Len()
@@ -82,7 +82,7 @@ func (s *SDS) Append(str string) {
 	if length > free {
 		s.Grow(length)
 	}
-	copy(s.buf, bytes)
+	copy(s.Buf, bytes)
 	s.len += length
 
 }
@@ -91,7 +91,7 @@ func (s *SDS) String() string {
 	if s == nil {
 		return ""
 	}
-	return BytesToString(s.buf)
+	return BytesToString(s.Buf)
 }
 
 // TODO
@@ -119,7 +119,7 @@ func SDSCmp(s1 SDS, s2 SDS) int32 {
 		minlen = len2
 	}
 
-	cmp := bytes.Compare(s1.buf[:minlen], s2.buf[:minlen])
+	cmp := bytes.Compare(s1.Buf[:minlen], s2.Buf[:minlen])
 
 	if cmp == 0 {
 		return len1 - len2

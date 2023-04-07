@@ -162,10 +162,10 @@ func (zsl *ZskipList) Print() {
 		x := zsl.Header
 
 		for x.Level[i].Forward != nil {
-			if x.Level[i].Forward.Ele.buf == nil {
+			if x.Level[i].Forward.Ele.Buf == nil {
 				continue
 			}
-			print(string(x.Ele.buf))
+			print(string(x.Ele.Buf))
 			for j := uint64(0); j < x.Level[i].Forward.Level[i].Span; j++ {
 				print("   -> ")
 			}

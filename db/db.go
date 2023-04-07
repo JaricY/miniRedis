@@ -1,8 +1,10 @@
 package db
 
-import "miniRedis/datastruct"
+import (
+	"miniRedis/datastruct"
+)
 
-type RedisDb struct {
+type RedisDb struct { //对应的数据库，从0号开始
 	id     int              // 序号
 	dict   *datastruct.Dict // 用于存储数据
 	expire *datastruct.Dict // 用于存储过期时间
@@ -41,4 +43,14 @@ func (r *RedisDb) SetExpire(key interface{}, expire uint64) {
 	if r.LookupKey(key) {
 		r.expire.DictAdd(key, expire)
 	}
+}
+
+func DBCreate(id int) *RedisDb {
+	db := &RedisDb{
+		id:     id,
+		dict:   datastruct.DictCreate(datastruct.MyDictType{}, nil),
+		expire: datastruct.DictCreate(datastruct.MyDictType{}, nil),
+	}
+
+	return db
 }

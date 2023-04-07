@@ -24,3 +24,13 @@ type RedisObj struct {
 	RefCount int //引用计数
 	Ptr      interface{}
 }
+
+func CreateObject(t RedisType, ptr interface{}) *RedisObj {
+	return &RedisObj{
+		Type:     t,
+		Encoding: 0,
+		RefCount: 1,
+		Ptr:      ptr,
+		//LRU:      lruClock(),
+	}
+}
