@@ -26,8 +26,8 @@ type RedisClient struct {
 	QueryBus *datastruct.SDS // 从客户端的请求获取到的数据
 
 	Buf     []byte //准备发回客户端的数据
-	Bufpos  int    //发回给哭互动那的数据pos
-	SentLen int    //已发送的字节数
+	Bufpos  int    //发回给客户端的数据pos末尾点
+	SentLen int    //已发送的字节数，也就是需要发送下一个数据的起始点
 }
 type RedisCommand struct {
 	name             datastruct.SDS            //命令名字

@@ -38,6 +38,7 @@ func ReactHandler(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
 	//out = []byte("+PONG\r\n")
 	fmt.Println("frame:", frame)
 	fmt.Println("queryBus:", client.QueryBus)
+	c.AsyncWrite([]byte("+PONG\r\n"))
 	return out, action
 }
 

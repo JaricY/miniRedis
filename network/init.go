@@ -26,7 +26,7 @@ func InitRedisServer() {
 }
 
 func InitServerCommandDict() {
-	server.commands = &datastruct.Dict{}
+	server.commands = datastruct.DictCreate(datastruct.MyDictType{}, nil)
 	for _, c := range redisCommandTable {
 		server.commands.DictAdd(c.name, c)
 	}
