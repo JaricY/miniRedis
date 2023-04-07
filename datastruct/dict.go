@@ -3,6 +3,7 @@ package datastruct
 import (
 	"fmt"
 	"github.com/spaolacci/murmur3"
+	"reflect"
 )
 
 const (
@@ -128,7 +129,19 @@ func (d *Dict) DictAdd(key, val interface{}) bool {
 	curr := ht.Ht_table[index]
 
 	for curr != nil {
-		if *curr.Key == key { // 说明存在相同的键
+		if reflect.TypeOf(key).String() == "datastruct.SDS" { //判断是否是sds格式
+			keysds := key.(SDS)
+			var tmp interface{}
+			var keycur SDS
+			if curr != nil {
+				tmp = *curr.Key
+				keycur = tmp.(SDS)
+			}
+			if SDSCmp(keysds, keycur) == 0 { // 说明存在相同的键
+				curr.Value = &val
+				return false
+			}
+		} else if *curr.Key == key { // 否则是其他类型
 			curr.Value = &val
 			return false
 		}

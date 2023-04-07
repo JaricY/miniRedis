@@ -1,7 +1,7 @@
 package db
 
 import (
-	"miniRedis/datastruct"
+	"minRedis/datastruct"
 )
 
 type RedisDb struct { //对应的数据库，从0号开始

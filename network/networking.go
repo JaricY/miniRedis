@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/panjf2000/gnet"
 	"log"
-	"miniRedis/datastruct"
+	"minRedis/datastruct"
+
 	"runtime"
 	"strconv"
 	"strings"
@@ -23,10 +24,8 @@ var server = &RedisServer{}
 func ReactHandler(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
 
 	client := server.clients.DictFetchValue(c.Context()).(*RedisClient) //从字典中获取到client客户端对象
-
-	client.QueryBus = datastruct.NewSDS(string(frame)) // 创建查询的sds
-
-	defer func() { //处理异常结果
+	client.QueryBus = datastruct.NewSDS(string(frame))                  // 创建查询的sds
+	defer func() {                                                      //处理异常结果
 		if err := recover(); err != nil {
 			var buf [4096]byte
 			n := runtime.Stack(buf[:], false)
@@ -38,7 +37,7 @@ func ReactHandler(frame []byte, c gnet.Conn) (out []byte, action gnet.Action) {
 	//out = []byte("+PONG\r\n")
 	fmt.Println("frame:", frame)
 	fmt.Println("queryBus:", client.QueryBus)
-	c.AsyncWrite([]byte("+PONG\r\n"))
+	client.ProcessInputBuffer()
 	return out, action
 }
 
@@ -51,7 +50,8 @@ func AcceptHandler(c gnet.Conn) (out []byte, action gnet.Action) {
 
 // ProcessInputBuffer 处理客户端接收到的数据
 func (c *RedisClient) ProcessInputBuffer() {
-	if c.QueryBus.GetIndex(0) == ' ' {
+	//fmt.Printf("c.QueryBus.String : ", c.QueryBus.String())
+	if c.QueryBus.String()[0] == ' ' {
 		return
 	} else if c.QueryBus.GetIndex(0) == '*' {
 		c.ReqType = redisReqMultibulk
@@ -82,6 +82,7 @@ func (c *RedisClient) ProcessInputBuffer() {
 
 // 解析以 "*" 开头的数据。
 func processMultiBulkBuffer(client *RedisClient) int {
+	log.Printf("enter processMultiBulkBuffer()")
 	// 按行划分
 	newLines := strings.Split(client.QueryBus.String(), "\n")
 	//处理每行的参数
@@ -104,11 +105,12 @@ func processMultiBulkBuffer(client *RedisClient) int {
 		}
 		if line[0] != '$' {
 			// 不是以'$'符结尾就暂且认为是字符串,也就是命令参数
-			client.Argv[argIdx] = datastruct.CreateObject(datastruct.RedisTypeString, datastruct.NewSDS(line))
+			client.Argv[argIdx] = datastruct.CreateObject(datastruct.RedisTypeString, *datastruct.NewSDS(line))
 			argIdx++
 		}
 	}
 	log.Printf("analysis command, command count: %v, value: %v", client.Argc, client.Argv)
+
 	return redisOk
 }
 

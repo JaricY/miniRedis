@@ -2,8 +2,8 @@ package network
 
 import (
 	"github.com/panjf2000/gnet"
-	"miniRedis/datastruct"
-	"miniRedis/db"
+	"minRedis/datastruct"
+	"minRedis/db"
 )
 
 const (

@@ -1,14 +1,15 @@
 package network
 
 import (
-	"miniRedis/datastruct"
-	"miniRedis/db"
+	"minRedis/datastruct"
+	"minRedis/db"
 	"os"
 )
 
 var (
 	redisCommandTable = []*RedisCommand{
-		{*datastruct.NewSDS("ping"), pingCommand},
+		{*datastruct.NewSDS("PING"), pingCommand},
+		{*datastruct.NewSDS("INFO"), infoCommand},
 	}
 )
 

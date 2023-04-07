@@ -24,7 +24,7 @@ func (s *SDS) NewSDS(str string) {
 	if length <= 1024 {
 		//默认创建1KB大小的缓冲
 		s.Buf = make([]byte, 1024)
-		s.Buf = append(s.Buf, str...)
+		s.Buf = append([]byte(str), s.Buf...)
 		s.len = length
 		s.free = 1024 - length
 	} else {
@@ -91,7 +91,7 @@ func (s *SDS) String() string {
 	if s == nil {
 		return ""
 	}
-	return BytesToString(s.Buf)
+	return string(s.Buf)
 }
 
 func (s *SDS) GetIndex(index int32) byte {

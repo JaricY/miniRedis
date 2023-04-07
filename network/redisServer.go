@@ -1,8 +1,8 @@
 package network
 
 import (
-	"miniRedis/datastruct"
-	"miniRedis/db"
+	"minRedis/datastruct"
+	"minRedis/db"
 )
 
 type RedisServer struct {

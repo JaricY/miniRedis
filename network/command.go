@@ -2,11 +2,12 @@ package network
 
 import (
 	"log"
-	"miniRedis/datastruct"
+	"minRedis/datastruct"
 )
 
 // 处理命令
 func processCommand(client *RedisClient) int {
+	log.Printf("开始执行命令")
 	client.Cmd = lookupCommand(client.Argv[0].Ptr.(datastruct.SDS))
 	client.LastCmd = client.Cmd
 
@@ -14,13 +15,15 @@ func processCommand(client *RedisClient) int {
 
 		return redisOk
 	}
+
+	call(client)
+
 	return redisOk
 }
 
 // 查找命令
 func lookupCommand(name datastruct.SDS) *RedisCommand {
 	cmd := server.commands.DictFetchValue(name)
-	log.Printf("lookup command: %v", cmd)
 	if cmd == nil {
 		return nil
 	}
@@ -38,6 +41,17 @@ func sendReplyToClient(client *RedisClient) int {
 	return redisOk
 }
 
-func pingCommand(c *RedisClient) {
+func call(client *RedisClient) {
+	log.Printf("执行call（）")
+	client.Cmd.redisCommandFunc(client)
+}
 
+func pingCommand(c *RedisClient) {
+	c.Conn.AsyncWrite([]byte("+PONG\r\n"))
+	log.Printf("成功写入PONG")
+}
+
+func infoCommand(c *RedisClient) {
+	c.Conn.AsyncWrite([]byte("+PONG\r\n"))
+	log.Printf("成功写入PONG")
 }
