@@ -94,6 +94,13 @@ func (s *SDS) String() string {
 	return BytesToString(s.Buf)
 }
 
+func (s *SDS) GetIndex(index int32) byte {
+	if index >= s.len {
+		return ' '
+	}
+	return s.Buf[index]
+}
+
 // TODO
 func BytesToString(bytes []byte) string {
 	return *(*string)(unsafe.Pointer(&bytes))

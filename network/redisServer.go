@@ -3,7 +3,6 @@ package network
 import (
 	"miniRedis/datastruct"
 	"miniRedis/db"
-	"os"
 )
 
 type RedisServer struct {
@@ -29,16 +28,4 @@ type RedisServer struct {
 	maxMemory        uint64 //max number of memory bytes to use
 	maxMemoryPolicy  int    //policy for key eviction
 	maxMemorySamples int
-}
-
-func InitRedisServer() {
-	create := datastruct.DictCreate(datastruct.MyDictType{}, nil)
-	event := &EventLoop{react: ReactHandler, onOpen: AcceptHandler}
-	db := db.DBCreate(0)
-	server = &RedisServer{
-		pid:     os.Getgid(),
-		clients: create,
-		events:  event,
-		db:      db,
-	}
 }

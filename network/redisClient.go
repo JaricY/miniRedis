@@ -6,25 +6,42 @@ import (
 	"miniRedis/db"
 )
 
+const (
+	redisReqInline    = 1
+	redisReqMultibulk = 2
+)
+
 type RedisClient struct {
-	id   int
-	conn gnet.Conn   //客户端连接
-	db   *db.RedisDb //当前客户端使用的数据库编号
+	Id   int
+	Conn gnet.Conn   //客户端连接
+	Db   *db.RedisDb //当前客户端使用的数据库编号
 	name *datastruct.RedisObj
-	argc int                    //命令数量
-	argv []*datastruct.RedisObj //命令值
+	Argc int                    //命令数量
+	Argv []*datastruct.RedisObj //命令值
 
-	cmd     *RedisCommand //当前执行的命令
-	lastCmd *RedisCommand //最后执行的命令
+	Cmd     *RedisCommand //当前执行的命令
+	LastCmd *RedisCommand //最后执行的命令
 
-	reqType  int
-	queryBus *datastruct.SDS // 从客户端的请求获取到的数据
+	ReqType  int
+	QueryBus *datastruct.SDS // 从客户端的请求获取到的数据
 
-	buf     []byte //准备发回客户端的数据
-	bufpos  int    //发回给哭互动那的数据pos
-	sentLen int    //已发送的字节数
+	Buf     []byte //准备发回客户端的数据
+	Bufpos  int    //发回给哭互动那的数据pos
+	SentLen int    //已发送的字节数
 }
 type RedisCommand struct {
 	name             datastruct.SDS            //命令名字
 	redisCommandFunc func(client *RedisClient) //命令解析方法
+}
+
+func CreateClient(c gnet.Conn) *RedisClient {
+	c.SetContext(GenerateClientId())
+	return &RedisClient{
+		Id:     c.Context().(int),
+		Conn:   c,
+		Db:     server.db,
+		Argc:   0,
+		Buf:    make([]byte, 1024*12),
+		Bufpos: 0,
+	}
 }
