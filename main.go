@@ -1,6 +1,6 @@
 package main
 
-import "minRedis/network"
+import "miniRedis/network"
 
 func main() {
 
