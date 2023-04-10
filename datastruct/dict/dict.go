@@ -1,6 +1,6 @@
 package dict
 
-// Consumer 是用于遍历Dict的函数，具体的由用户传入。如果返回了false则说明遍历中断
+// Consumer 是用于遍历Dict的函数，具体的由用户传入，因为具体的遍历内容需要用户定义。如果返回了false则说明遍历中断
 type Consumer func(key string, val interface{}) bool
 
 // Dict 这里定义的Dict是一个接口，定义了Dict需要实现的方法
