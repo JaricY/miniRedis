@@ -200,10 +200,147 @@ func (skiplist *skiplist) getRank(member string, score float64) int64 {
 			x = x.level[i].forward
 		}
 
-		/* x might be equal to zsl->header, so test if obj is non-NULL */
+		/* x有可能是头结点，所以要确保不是null */
 		if x.Member == member {
 			return rank
 		}
 	}
 	return 0
+}
+
+func (skiplist *skiplist) getByRank(rank int64) *node {
+	var i int64 = 0
+	n := skiplist.header
+	// 扫描每层
+	for level := skiplist.level - 1; level >= 0; level-- {
+		for n.level[level].forward != nil && (i+n.level[level].span) <= rank {
+			i += n.level[level].span
+			n = n.level[level].forward
+		}
+		if i == rank {
+			return n
+		}
+	}
+	return nil
+}
+
+// hasInRange 判断是否在这个范围内
+func (skiplist *skiplist) hasInRange(min *ScoreBorder, max *ScoreBorder) bool {
+	// min & max = empty
+	if min.Value > max.Value || (min.Value == max.Value && (min.Exclude || max.Exclude)) {
+		return false
+	}
+	// min > tail
+	n := skiplist.tail
+	if n == nil || !min.less(n.Score) {
+		return false
+	}
+	// max < head
+	n = skiplist.header.level[0].forward
+	if n == nil || !max.greater(n.Score) {
+		return false
+	}
+	return true
+}
+
+func (skiplist *skiplist) getFirstInScoreRange(min *ScoreBorder, max *ScoreBorder) *node {
+	if !skiplist.hasInRange(min, max) {
+		return nil
+	}
+	n := skiplist.header
+	// 从顶层开始查找，找到第一个小于max大于min的值
+	for level := skiplist.level - 1; level >= 0; level-- {
+		// 遍历每层
+		for n.level[level].forward != nil && !min.less(n.level[level].forward.Score) {
+			n = n.level[level].forward
+		}
+	}
+	/* 这是一个范围查询，所以下一个点不能是null. */
+	n = n.level[0].forward
+	if !max.greater(n.Score) {
+		return nil
+	}
+	return n
+}
+
+func (skiplist *skiplist) getLastInScoreRange(min *ScoreBorder, max *ScoreBorder) *node {
+	if !skiplist.hasInRange(min, max) {
+		return nil
+	}
+	n := skiplist.header
+	for level := skiplist.level - 1; level >= 0; level-- {
+		for n.level[level].forward != nil && max.greater(n.level[level].forward.Score) {
+			n = n.level[level].forward
+		}
+	}
+	if !min.less(n.Score) {
+		return nil
+	}
+	return n
+}
+
+// RemoveRangeByScore 根据排名移除limit个在（min，max）的元素
+func (skiplist *skiplist) RemoveRangeByScore(min *ScoreBorder, max *ScoreBorder, limit int) (removed []*Element) {
+	update := make([]*node, maxLevel)
+	removed = make([]*Element, 0)
+	// find backward nodes (of target range) or last node of each level
+	node := skiplist.header
+	for i := skiplist.level - 1; i >= 0; i-- {
+		for node.level[i].forward != nil {
+			if min.less(node.level[i].forward.Score) { // already in range
+				break
+			}
+			node = node.level[i].forward
+		}
+		update[i] = node
+	}
+
+	// 取第一个在范围内的node
+	node = node.level[0].forward
+
+	//移除结点
+	for node != nil {
+		if !max.greater(node.Score) { // already out of range
+			break
+		}
+		next := node.level[0].forward
+		removedElement := node.Element
+		removed = append(removed, &removedElement)
+		skiplist.removeNode(node, update)
+		if limit > 0 && len(removed) == limit {
+			break
+		}
+		node = next
+	}
+	return removed
+}
+
+func (skiplist *skiplist) RemoveRangeByRank(start int64, stop int64) (removed []*Element) {
+	var i int64 = 0 // rank of iterator
+	update := make([]*node, maxLevel)
+	removed = make([]*Element, 0)
+
+	// scan from top level
+	node := skiplist.header
+	for level := skiplist.level - 1; level >= 0; level-- {
+		for node.level[level].forward != nil && (i+node.level[level].span) < start {
+			i += node.level[level].span
+			node = node.level[level].forward
+		}
+		update[level] = node
+	}
+
+	i++
+	node = node.level[0].forward // first node in range
+
+	// remove nodes in range
+	for node != nil && i < stop {
+		next := node.level[0].forward
+		removedElement := node.Element
+		removed = append(removed, &removedElement)
+		skiplist.removeNode(node, update)
+		node = next
+		i++
+	}
+	return removed
 }
