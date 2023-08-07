@@ -8,6 +8,7 @@ import (
 	"miniRedis/interface/redis"
 	"miniRedis/lib/logger"
 	"miniRedis/lib/utils"
+	"miniRedis/pubsub"
 	"miniRedis/redis/protocol"
 	"runtime/debug"
 	"strconv"
@@ -31,9 +32,9 @@ type Server struct {
 	persister *aof.Persister
 
 	// for replication
-	role         int32
-	slaveStatus  *slaveStatus
-	masterStatus *masterStatus
+	role int32
+	/*	slaveStatus  *slaveStatus
+		masterStatus *masterStatus*/
 }
 
 // NewStandaloneServer creates a standalone redis server, with multi database and all other funtions
@@ -61,6 +62,9 @@ func NewStandaloneServer() *Server {
 		server.bindPersister(aofHandler)
 		validAof = true
 	}
+
+	//TODO
+	// RDB
 	if config.Properties.RDBFilename != "" && !validAof {
 		// load rdb
 		err := server.loadRdbFile()
@@ -101,24 +105,26 @@ func (server *Server) Exec(c redis.Connection, cmdLine [][]byte) (result redis.R
 	if !isAuthenticated(c) {
 		return protocol.MakeErrReply("NOAUTH Authentication required")
 	}
-	if cmdName == "slaveof" {
-		if c != nil && c.InMultiState() {
-			return protocol.MakeErrReply("cannot use slave of database within multi")
-		}
-		if len(cmdLine) != 3 {
-			return protocol.MakeArgNumErrReply("SLAVEOF")
-		}
-		return server.execSlaveOf(c, cmdLine[1:])
-	}
+	// TODO
+	// slaveof
+	//if cmdName == "slaveof" {
+	//	if c != nil && c.InMultiState() {
+	//		return protocol.MakeErrReply("cannot use slave of database within multi")
+	//	}
+	//	if len(cmdLine) != 3 {
+	//		return protocol.MakeArgNumErrReply("SLAVEOF")
+	//	}
+	//	return server.execSlaveOf(c, cmdLine[1:])
+	//}
 
 	// read only slave
-	role := atomic.LoadInt32(&server.role)
-	if role == slaveRole && !c.IsMaster() {
-		// only allow read only command, forbid all special commands except `auth` and `slaveof`
-		if !isReadOnlyCommand(cmdName) {
-			return protocol.MakeErrReply("READONLY You can't write against a read only slave.")
-		}
-	}
+	/*	role := atomic.LoadInt32(&server.role)
+		if role == slaveRole && !c.IsMaster() {
+			// only allow read only command, forbid all special commands except `auth` and `slaveof`
+			if !isReadOnlyCommand(cmdName) {
+				return protocol.MakeErrReply("READONLY You can't write against a read only slave.")
+			}
+		}*/
 
 	// special commands which cannot execute within transaction
 	if cmdName == "subscribe" {
@@ -163,9 +169,9 @@ func (server *Server) Exec(c redis.Connection, cmdLine [][]byte) (result redis.R
 		}
 		return execCopy(server, c, cmdLine[1:])
 	} else if cmdName == "replconf" {
-		return server.execReplConf(c, cmdLine[1:])
+		//return server.execReplConf(c, cmdLine[1:])
 	} else if cmdName == "psync" {
-		return server.execPSync(c, cmdLine[1:])
+		//return server.execPSync(c, cmdLine[1:])
 	}
 	// todo: support multi database transaction
 
@@ -178,7 +184,8 @@ func (server *Server) Exec(c redis.Connection, cmdLine [][]byte) (result redis.R
 	return selectedDB.Exec(c, cmdLine)
 }
 
-// AfterClientClose does some clean after client close connection
+// TODO 集群模式下的优雅退出
+/*// AfterClientClose does some clean after client close connection
 func (server *Server) AfterClientClose(c redis.Connection) {
 	pubsub.UnsubscribeAll(server.hub, c)
 }
@@ -192,6 +199,7 @@ func (server *Server) Close() {
 	}
 	server.stopMaster()
 }
+*/
 
 func execSelect(c redis.Connection, mdb *Server, args [][]byte) redis.Reply {
 	dbIndex, err := strconv.Atoi(string(args[0]))

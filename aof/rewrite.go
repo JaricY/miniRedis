@@ -107,11 +107,11 @@ func (persister *Persister) StartRewrite() (*RewriteCtx, error) {
 
 // FinishRewrite finish rewrite procedure
 func (persister *Persister) FinishRewrite(ctx *RewriteCtx) {
-	persister.pausingAof.Lock() // pausing aof
+	persister.pausingAof.Lock() // 确保重写期间没有其他写操作，保证数据一致性
 	defer persister.pausingAof.Unlock()
 
 	tmpFile := ctx.tmpFile
-	// write commands executed during rewriting to tmp file
+
 	src, err := os.Open(persister.aofFilename)
 	if err != nil {
 		logger.Error("open aofFilename failed: " + err.Error())
@@ -126,7 +126,7 @@ func (persister *Persister) FinishRewrite(ctx *RewriteCtx) {
 		return
 	}
 
-	// sync tmpFile's db index with online aofFile
+	// 修改为之前未选择的数据库
 	data := protocol.MakeMultiBulkReply(utils.ToCmdLine("SELECT", strconv.Itoa(ctx.dbIdx))).ToBytes()
 	_, err = tmpFile.Write(data)
 	if err != nil {
@@ -134,7 +134,7 @@ func (persister *Persister) FinishRewrite(ctx *RewriteCtx) {
 		return
 	}
 
-	// copy data
+	// 将原有的AOF文件的剩余内容复制到tmpFIle中
 	_, err = io.Copy(tmpFile, src)
 	if err != nil {
 		logger.Error("copy aof filed failed: " + err.Error())
@@ -143,18 +143,18 @@ func (persister *Persister) FinishRewrite(ctx *RewriteCtx) {
 
 	tmpFileName := tmpFile.Name()
 	_ = tmpFile.Close()
-	// replace current aof file by tmp file
+	// 使用临时的文件代替AOF文件
 	_ = persister.aofFile.Close()
 	_ = os.Rename(tmpFileName, persister.aofFilename)
 
-	// reopen aof file for further write
+	// 修改当前的AOF文件并打开以便后续的操作
 	aofFile, err := os.OpenFile(persister.aofFilename, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0600)
 	if err != nil {
 		panic(err)
 	}
 	persister.aofFile = aofFile
 
-	// write select command again to ensure aof file has the same db index with  persister.currentDB
+	// 确保当前的数据库和AOF文件中的是同一个数据库索引
 	data = protocol.MakeMultiBulkReply(utils.ToCmdLine("SELECT", strconv.Itoa(persister.currentDB))).ToBytes()
 	_, err = persister.aofFile.Write(data)
 	if err != nil {

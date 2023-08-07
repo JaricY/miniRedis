@@ -37,6 +37,7 @@ func computeCapacity(param int) (size int) {
 	return n + 1
 }
 
+// MakeConcurrent 创建字典分片的长度大小为shardCount的读写安全字典
 func MakeConcurrent(shardCount int) *ConcurrentDict {
 	shardCount = computeCapacity(shardCount)
 	table := make([]*shard, shardCount)

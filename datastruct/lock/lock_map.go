@@ -14,6 +14,7 @@ type Locks struct {
 	table []*sync.RWMutex
 }
 
+// Make 创建一个默认大小为tableSize的读写锁
 func Make(tableSize int) *Locks {
 	table := make([]*sync.RWMutex, tableSize)
 	for i := 0; i < tableSize; i++ {
